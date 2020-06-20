@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 2.8)
+project(zipc)
+add_library(zipc SHARED ipc.c)
+include_directories(.)
+target_link_libraries(zipc dl)
+target_link_libraries(zipc zmq)
+set_target_properties(zipc PROPERTIES SOVERSION 1 PUBLIC_HEADER ipc.h)
+install(TARGETS zipc LIBRARY DESTINATION /usr/lib PUBLIC_HEADER DESTINATION /usr/include)

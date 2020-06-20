@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 2.4)
+project(client)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../libdaemon)
+include_directories(/usr/include)
+link_directories(/usr/lib)
+add_executable(client client.c)
+target_link_libraries(client daemon)
+install(TARGETS client DESTINATION ${CMAKE_BINARY_DIR}/output/)

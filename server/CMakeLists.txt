@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 2.8)
+project(server)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../libdaemon)
+include_directories(/usr/include)
+link_directories(/usr/lib)
+add_executable(server server.c)
+target_link_libraries(server daemon)
+install(TARGETS server DESTINATION ${CMAKE_BINARY_DIR}/output/)
