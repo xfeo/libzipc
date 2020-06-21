@@ -8,7 +8,11 @@
 #define MAX_LEN_LIBRARY_NAME 50
 #define MAX_LEN_CHANNEL_ZMQ 256
 
-static const char *g_zmq_protocol = "tcp://";
+#ifdef TCP_IPC
+static const char *g_zmq_protocol = "tcp:///";
+#else
+static const char *g_zmq_protocol = "ipc:///";  
+#endif
 
 typedef struct IPC_SHARED_DATA
 {
@@ -18,8 +22,11 @@ typedef struct IPC_SHARED_DATA
   int func_retval;
 } IPC_SHARED_DATA;
 
-static IPC_RESULT
-ipc_client_side (int port, void *context, const char *lib, const char *func, void *in,
+static IPC_RESULT ipc_client_side (
+#ifdef TCP_IPC
+int port, 
+#endif
+void *context, const char *lib, const char *func, void *in,
 		 size_t in_size, void **out, size_t * out_size, int *ret_val)
 {
   IPC_RESULT result = SUCCESS;
@@ -30,7 +37,11 @@ ipc_client_side (int port, void *context, const char *lib, const char *func, voi
   char connection[MAX_LEN_CHANNEL_ZMQ] = {
     0
   };
+#ifdef TCP_IPC
   snprintf (connection, sizeof (connection), "%s" PROCESSOR_TARGET_IP ":%d", g_zmq_protocol, port);
+#else
+  snprintf (connection, sizeof (connection), "%s%s.ipc", g_zmq_protocol, lib);    
+#endif
   if (zmq_connect (requester, connection)) {
     zmq_close (requester);
     return FAILURE_ZMQ;
@@ -71,8 +82,13 @@ ipc_client_side (int port, void *context, const char *lib, const char *func, voi
   return result;
 }
 
-static IPC_RESULT
-ipc_server_side (void *context, int port)
+static IPC_RESULT ipc_server_side (void *context
+#ifdef TCP_IPC
+, int port
+#else
+, const char *lib
+#endif
+)
 {
   void *in = NULL;
   size_t in_size = 0;
@@ -88,7 +104,11 @@ ipc_server_side (void *context, int port)
   char connection[MAX_LEN_CHANNEL_ZMQ] = {
     0
   };
+#ifdef TCP_IPC
   snprintf (connection, sizeof (connection), "%s*:%d", g_zmq_protocol, port);
+#else
+  snprintf (connection, sizeof (connection), "%s%s.ipc", g_zmq_protocol, lib);    
+#endif
   if (zmq_bind (responder, connection)) {
     zmq_close (responder);
     return FAILURE_ZMQ;
@@ -152,19 +172,32 @@ ipc_server_side (void *context, int port)
   return result;
 }
 
-IPC_RESULT ipc_call (int port, IPC_ROLE role, const char *lib, const char *func, void *in, size_t in_size, void **out, size_t *out_size, int *ret_val)
+IPC_RESULT ipc_call (
+#ifdef TCP_IPC
+int port,
+#endif 
+IPC_ROLE role, const char *lib, const char *func, void *in, size_t in_size, void **out, size_t *out_size, int *ret_val)
 {
   IPC_RESULT result = SUCCESS;
-  if (!ret_val || ((role == IPC_CLIENT) && (!lib || !func || !out)))
+  if (!ret_val || ((role == IPC_CLIENT) && (!func || !out)))
     return FAILURE_BAD_PARAMETERS;
   void *context = zmq_ctx_new ();
   if (!context)
     return FAILURE_ZMQ;
   if (role == IPC_CLIENT)
-    result = ipc_client_side (port, context, lib, func, in, in_size, out, out_size,
-		       ret_val);
+    result = ipc_client_side (
+#ifdef TCP_IPC
+                              port, 
+#endif
+                              context, lib, func, in, in_size, out, out_size, ret_val);
   else
-    result = ipc_server_side (context, port);
+    result = ipc_server_side (context
+#ifdef TCP_IPC
+                              ,port 
+#else
+                              ,lib
+#endif
+                             );
   zmq_ctx_destroy (context);
   return result;
 }

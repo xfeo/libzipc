@@ -22,7 +22,11 @@ typedef enum IPC_ROLE
   IPC_CLIENT
 } IPC_ROLE;
 
-IPC_RESULT ipc_call (int port, IPC_ROLE role, const char *lib, const char *func, void *in, size_t in_size, void **out, size_t *out_size, int *ret_val);
+IPC_RESULT ipc_call (
+#ifdef TCP_IPC
+                     int port, 
+#endif
+                     IPC_ROLE role, const char *lib, const char *func, void *in, size_t in_size, void **out, size_t *out_size, int *ret_val);
 
 
 #endif /*__LIB_ZIPC__*/

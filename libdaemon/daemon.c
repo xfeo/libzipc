@@ -36,7 +36,7 @@ int __getPidv (IPC_ROLE role, void *in, size_t in_size, void **out,
     /* CLIENT SIDE*/
     void *tmp_out = NULL;
     size_t tmp_out_size = 0;
-    if (ipc_call(LIBDAEMON_TCPPORT, IPC_CLIENT, LIBNAME, __func__, NULL, 0, &tmp_out,&tmp_out_size, retval) == SUCCESS) {
+    if (ipc_call(IPC_CLIENT, LIBNAME, __func__, NULL, 0, &tmp_out,&tmp_out_size, retval) == SUCCESS) {
       if (tmp_out_size == *out_size) {
         memcpy (*out, tmp_out, tmp_out_size);
         return OK;
@@ -61,7 +61,6 @@ int startServer ()
   int retval = 0;
   void *out = NULL;
   size_t out_size = 0;
-  if (ipc_call(LIBDAEMON_TCPPORT, IPC_SERVER, NULL, NULL, NULL, 0, NULL, NULL, &retval) == SUCCESS)
-    return retval;
-  return -1;
+  while (ipc_call(IPC_SERVER, LIBNAME, NULL, NULL, 0, NULL, NULL, &retval) == SUCCESS);
+  return retval;
 }
