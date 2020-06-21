@@ -5,7 +5,7 @@
 The following example performs a simple IPC between two processes one client and the other server.
 The "Server" process acts as *Remote Command Server*, it waits to receive a request by the "Client" and serves it.
 
-This example is composed by four parts, each one of them stored in a own folder:
+This example is composed by four parts, each one of them stored in an own folder:
 
  * **libzipc**: it contains the IPC logic, this component utilizes ZeroMQ library to implement the ipc channel
  * **libdaemon**: it contains the service logic
